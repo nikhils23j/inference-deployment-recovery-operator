@@ -1,0 +1,14 @@
+{
+  "scope": "in-memory API only; no live Kubernetes latency claim",
+  "environment": {
+    "python": "3.10.8",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "cases": 30,
+  "repaired": 30,
+  "unique_objects": 2,
+  "max_reconcile_ms_in_memory": 0.048,
+  "creates": 12,
+  "patches": 20,
+  "baseline": "a one-shot manifest has no controller reconciliation after fault injection"
+}

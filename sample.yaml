@@ -1,0 +1,9 @@
+apiVersion: portfolio.nikhil.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: demo-inference
+  namespace: default
+spec:
+  image: nginx:1.27-alpine
+  replicas: 1
+  port: 80
