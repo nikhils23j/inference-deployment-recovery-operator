@@ -1,0 +1,167 @@
+{
+  "scope": "live local Kubernetes API object convergence; not Pod readiness",
+  "environment": {
+    "python": "3.10.8",
+    "platform": "macOS-27.2-arm64-arm-64bit"
+  },
+  "resource": "default/demo-inference",
+  "cases_run": 30,
+  "recovered_within_30s": 30,
+  "max_recovery_s": 0.869,
+  "max_owned_deployments_and_services": 2,
+  "controller_errors": [],
+  "one_shot_baseline_recreated_deployment_after_3s": false,
+  "target_met": true,
+  "records": [
+    {
+      "fault": "delete_deployment",
+      "recovered": true,
+      "recovery_s": 0.541
+    },
+    {
+      "fault": "delete_service",
+      "recovered": true,
+      "recovery_s": 0.556
+    },
+    {
+      "fault": "image_drift",
+      "recovered": true,
+      "recovery_s": 0.43
+    },
+    {
+      "fault": "replica_drift",
+      "recovered": true,
+      "recovery_s": 0.869
+    },
+    {
+      "fault": "service_port_drift",
+      "recovered": true,
+      "recovery_s": 0.134
+    },
+    {
+      "fault": "selector_drift",
+      "recovered": true,
+      "recovery_s": 0.377
+    },
+    {
+      "fault": "delete_deployment",
+      "recovered": true,
+      "recovery_s": 0.529
+    },
+    {
+      "fault": "delete_service",
+      "recovered": true,
+      "recovery_s": 0.538
+    },
+    {
+      "fault": "image_drift",
+      "recovered": true,
+      "recovery_s": 0.444
+    },
+    {
+      "fault": "replica_drift",
+      "recovered": true,
+      "recovery_s": 0.487
+    },
+    {
+      "fault": "service_port_drift",
+      "recovered": true,
+      "recovery_s": 0.536
+    },
+    {
+      "fault": "selector_drift",
+      "recovered": true,
+      "recovery_s": 0.494
+    },
+    {
+      "fault": "delete_deployment",
+      "recovered": true,
+      "recovery_s": 0.454
+    },
+    {
+      "fault": "delete_service",
+      "recovered": true,
+      "recovery_s": 0.546
+    },
+    {
+      "fault": "image_drift",
+      "recovered": true,
+      "recovery_s": 0.442
+    },
+    {
+      "fault": "replica_drift",
+      "recovered": true,
+      "recovery_s": 0.626
+    },
+    {
+      "fault": "service_port_drift",
+      "recovered": true,
+      "recovery_s": 0.386
+    },
+    {
+      "fault": "selector_drift",
+      "recovered": true,
+      "recovery_s": 0.457
+    },
+    {
+      "fault": "delete_deployment",
+      "recovered": true,
+      "recovery_s": 0.48
+    },
+    {
+      "fault": "delete_service",
+      "recovered": true,
+      "recovery_s": 0.45
+    },
+    {
+      "fault": "image_drift",
+      "recovered": true,
+      "recovery_s": 0.579
+    },
+    {
+      "fault": "replica_drift",
+      "recovered": true,
+      "recovery_s": 0.527
+    },
+    {
+      "fault": "service_port_drift",
+      "recovered": true,
+      "recovery_s": 0.365
+    },
+    {
+      "fault": "selector_drift",
+      "recovered": true,
+      "recovery_s": 0.366
+    },
+    {
+      "fault": "delete_deployment",
+      "recovered": true,
+      "recovery_s": 0.551
+    },
+    {
+      "fault": "delete_service",
+      "recovered": true,
+      "recovery_s": 0.438
+    },
+    {
+      "fault": "image_drift",
+      "recovered": true,
+      "recovery_s": 0.545
+    },
+    {
+      "fault": "replica_drift",
+      "recovered": true,
+      "recovery_s": 0.472
+    },
+    {
+      "fault": "service_port_drift",
+      "recovered": true,
+      "recovery_s": 0.382
+    },
+    {
+      "fault": "selector_drift",
+      "recovered": true,
+      "recovery_s": 0.494
+    }
+  ]
+}
