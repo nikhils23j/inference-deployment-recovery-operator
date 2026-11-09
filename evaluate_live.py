@@ -1,7 +1,13 @@
-"""Thirty fault injections against a real local Kubernetes API server.
+"""Thirty fault injections against a REAL Kubernetes API server (k3s / kind / minikube).
 
-Requires the CRD and sample resource to be applied first. The evaluation measures
-object-spec convergence, not Pod readiness or inference serving availability.
+Requires crd.yaml and sample.yaml to be applied first, and the standalone operator
+to be stopped. Measures API-object convergence, not Pod readiness.
+
+    .venv/bin/python evaluate_live.py --controller v2   # writes results-live-v2.json
+    .venv/bin/python evaluate_live.py --controller v1   # re-runs the original v1 loop
+
+results-live.json (30 Oct 2026, v1 controller, Lima/k3s) is the historical run and is
+never overwritten by default.
 """
 from __future__ import annotations
 
@@ -12,25 +18,32 @@ import threading
 import time
 from pathlib import Path
 
-from controller import Desired, _drifted, deployment, reconcile, service
-from k8s_adapter import KubernetesAPI
-
+from controller import Desired, controller_owner_uid
+from k8s_adapter import KubernetesAPI, LiveOperator
 
 FAULTS = ("delete_deployment", "delete_service", "image_drift", "replica_drift", "service_port_drift", "selector_drift")
 
 
+def objects_match(dep: dict | None, svc: dict | None, d: Desired) -> bool:
+    """Spec-level check shared by v1 and v2 (ignores v2-only fields like progressDeadlineSeconds)."""
+    if not dep or not svc or controller_owner_uid(dep) != d.uid or controller_owner_uid(svc) != d.uid:
+        return False
+    containers = dep["spec"]["template"]["spec"]["containers"]
+    ports = svc["spec"].get("ports") or []
+    return (dep["spec"].get("replicas") == d.replicas and len(containers) == 1
+            and containers[0].get("image") == d.image
+            and (containers[0].get("ports") or [{}])[0].get("containerPort") == d.port
+            and svc["spec"].get("selector") == {"app.kubernetes.io/name": d.name}
+            and len(ports) == 1 and ports[0].get("port") == d.port and ports[0].get("targetPort") == d.port)
+
+
 def healthy(api: KubernetesAPI, d: Desired) -> bool:
-    dep = api.get("Deployment", d.namespace, d.name)
-    svc = api.get("Service", d.namespace, d.name)
-    return bool(dep and svc and not _drifted("Deployment", dep, deployment(d))
-                and not _drifted("Service", svc, service(d)))
+    return objects_match(api.get("Deployment", d.namespace, d.name), api.get("Service", d.namespace, d.name), d)
 
 
 def owned_count(api: KubernetesAPI, d: Desired) -> int:
-    deployments = api.apps.list_namespaced_deployment(d.namespace).items
-    services = api.core.list_namespaced_service(d.namespace).items
-    return sum(1 for obj in [*deployments, *services]
-               if any(ref.uid == d.uid for ref in (obj.metadata.owner_references or [])))
+    objs = api.list("Deployment", d.namespace) + api.list("Service", d.namespace)
+    return sum(1 for o in objs if controller_owner_uid(o) == d.uid)
 
 
 def inject(api: KubernetesAPI, d: Desired, fault: str) -> None:
@@ -53,6 +66,35 @@ def inject(api: KubernetesAPI, d: Desired, fault: str) -> None:
             {"op": "replace", "path": "/spec/selector", "value": {"wrong": "label"}}])
 
 
+class V1LiveAdapter:
+    """The v1 adapter's get/create/patch behaviour (JSON-patch replace), on the new client wrapper."""
+
+    def __init__(self, api: KubernetesAPI):
+        self.api = api
+
+    def get(self, kind, namespace, name):
+        return self.api.get(kind, namespace, name)
+
+    def create(self, kind, namespace, body):
+        from controller import AlreadyExists
+        try:
+            self.api.create(kind, namespace, body)
+        except AlreadyExists:
+            pass
+
+    def patch(self, kind, namespace, name, body):
+        spec = body["spec"]
+        if kind == "Deployment":
+            ops = [{"op": "replace", "path": "/spec/replicas", "value": spec["replicas"]},
+                   {"op": "replace", "path": "/spec/template", "value": spec["template"]}]
+            self.api.apps.patch_namespaced_deployment(name, namespace, ops)
+        else:
+            selector = {k: v for k, v in spec["selector"].items() if v is not None}
+            ops = [{"op": "replace", "path": "/spec/selector", "value": selector},
+                   {"op": "replace", "path": "/spec/ports", "value": spec["ports"]}]
+            self.api.core.patch_namespaced_service(name, namespace, ops)
+
+
 def wait_healthy(api: KubernetesAPI, d: Desired, timeout: float) -> float | None:
     start = time.monotonic()
     while time.monotonic() - start < timeout:
@@ -66,66 +108,79 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--namespace", default="default")
     parser.add_argument("--name", default="demo-inference")
-    parser.add_argument("--output", default="results-live.json")
+    parser.add_argument("--controller", choices=["v1", "v2"], default="v2")
+    parser.add_argument("--output", default=None, help="default: results-live-<controller>-rerun.json")
     args = parser.parse_args()
+    output = args.output or f"results-live-{args.controller}-rerun.json"
+    if Path(output).name == "results-live.json":
+        raise SystemExit("refusing to overwrite the historical results-live.json; pick another --output")
     api = KubernetesAPI()
-    resources = {r["metadata"]["name"]: r for r in api.resources(args.namespace)}
+    resources = {r["metadata"]["name"]: r for r in api.list("InferenceService", args.namespace)}
     if args.name not in resources:
         raise SystemExit("apply crd.yaml and sample.yaml before live evaluation")
     resource = resources[args.name]
     d = Desired.from_resource(resource)
+    errors: list[str] = []
     stop = threading.Event()
-    errors = []
 
-    def controller_loop():
-        while not stop.is_set():
-            try:
-                reconcile(api, resource)
-            except Exception as exc:
-                errors.append(repr(exc))
-            stop.wait(0.5)
+    if args.controller == "v2":
+        op = LiveOperator(api, args.namespace, leader_elect=True, identity="evaluate-live")
+        op.run()
+        stop = op.stop
+    else:
+        from v1.controller_v1 import reconcile as v1_reconcile
+        adapter = V1LiveAdapter(api)
 
-    thread = threading.Thread(target=controller_loop, daemon=True)
-    thread.start()
-    records = []
-    max_owned_count = 0
+        def loop():
+            while not stop.is_set():
+                try:
+                    v1_reconcile(adapter, resource)
+                except Exception as exc:  # noqa: BLE001 - recorded, like the original evaluator
+                    errors.append(repr(exc))
+                stop.wait(0.5)
+        threading.Thread(target=loop, daemon=True).start()
+
+    records, max_owned = [], 0
     try:
-        if wait_healthy(api, d, 30) is None:
+        if wait_healthy(api, d, 60) is None:
             raise RuntimeError("initial objects did not converge")
         for fault in FAULTS * 5:
             if not healthy(api, d):
                 raise RuntimeError("objects drifted before next fault")
             inject(api, d, fault)
             elapsed = wait_healthy(api, d, 30)
-            max_owned_count = max(max_owned_count, owned_count(api, d))
+            max_owned = max(max_owned, owned_count(api, d))
             records.append({"fault": fault, "recovered": elapsed is not None,
                             "recovery_s": round(elapsed, 3) if elapsed is not None else None})
             if elapsed is None:
                 break
     finally:
         stop.set()
-        thread.join(timeout=5)
-    # One-shot baseline: with the custom controller stopped, the Deployment
-    # object is not restored by Kubernetes' own Deployment controller.
+        time.sleep(1.0)
+
+    # Baseline: with the controller stopped nothing restores a deleted Deployment object.
     api.apps.delete_namespaced_deployment(d.name, d.namespace)
     time.sleep(3)
     baseline_recreated = api.get("Deployment", d.namespace, d.name) is not None
-    reconcile(api, resource)  # restore the sample after baseline observation
+    restore = LiveOperator(api, args.namespace, leader_elect=False)
+    restore.reconciler.reconcile(d.namespace, d.name)  # put the sample back
     passed = sum(r["recovered"] and r["recovery_s"] <= 30 for r in records)
+    rec = [r["recovery_s"] for r in records if r["recovered"]]
     result = {
         "scope": "live local Kubernetes API object convergence; not Pod readiness",
-        "environment": {"python": platform.python_version(), "platform": platform.platform()},
+        "controller": args.controller,
+        "environment": {"python": platform.python_version(), "platform": platform.platform(),
+                        "date": time.strftime("%Y-%m-%d")},
         "resource": f"{d.namespace}/{d.name}", "cases_run": len(records),
         "recovered_within_30s": passed,
-        "max_recovery_s": max((r["recovery_s"] for r in records if r["recovered"]), default=None),
-        "max_owned_deployments_and_services": max_owned_count,
+        "median_recovery_s": sorted(rec)[len(rec) // 2] if rec else None,
+        "max_recovery_s": max(rec, default=None),
+        "max_owned_deployments_and_services": max_owned,
         "controller_errors": errors,
         "one_shot_baseline_recreated_deployment_after_3s": baseline_recreated,
-        "target_met": len(records) == 30 and passed >= 29 and max_owned_count == 2
-                      and not baseline_recreated and not errors,
         "records": records,
     }
-    Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
+    Path(output).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 
 

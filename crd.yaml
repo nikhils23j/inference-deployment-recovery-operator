@@ -14,6 +14,14 @@ spec:
     - name: v1alpha1
       served: true
       storage: true
+      subresources:
+        status: {}          # status writes go to /status and do not bump metadata.generation
+      additionalPrinterColumns:
+        - {name: Image, type: string, jsonPath: .spec.image}
+        - {name: Serving, type: string, jsonPath: .status.currentImage}
+        - {name: Ready, type: string, jsonPath: '.status.conditions[?(@.type=="Ready")].status'}
+        - {name: Reason, type: string, jsonPath: '.status.conditions[?(@.type=="Ready")].reason'}
+        - {name: Age, type: date, jsonPath: .metadata.creationTimestamp}
       schema:
         openAPIV3Schema:
           type: object
@@ -25,3 +33,7 @@ spec:
                 image: {type: string, minLength: 1}
                 replicas: {type: integer, minimum: 0, maximum: 10, default: 1}
                 port: {type: integer, minimum: 1, maximum: 65535, default: 8080}
+                progressDeadlineSeconds: {type: integer, minimum: 5, maximum: 3600, default: 120}
+            status:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true

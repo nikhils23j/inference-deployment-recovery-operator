@@ -1,14 +1,340 @@
 {
-  "scope": "in-memory API only; no live Kubernetes latency claim",
+  "scope": "OFFLINE SIMULATION (fake API server, simulated clock). Repair times are simulated seconds under assumed latencies and are NOT Kubernetes measurements; see results-live.json for the real k3s run.",
+  "command": "python3 demo_offline.py",
   "environment": {
     "python": "3.10.8",
     "platform": "macOS-27.2-arm64-arm-64bit"
   },
-  "cases": 30,
-  "repaired": 30,
-  "unique_objects": 2,
-  "max_reconcile_ms_in_memory": 0.048,
-  "creates": 12,
-  "patches": 20,
-  "baseline": "a one-shot manifest has no controller reconciliation after fault injection"
+  "classic_30_faults": {
+    "v1": {
+      "cases": 30,
+      "repaired": 30,
+      "sim_repair_s_median": 0.2647,
+      "sim_repair_s_max": 0.5084,
+      "controller_requests_total": 1805,
+      "sim_seconds": 300.4,
+      "controller_requests_per_sim_s": 6.01,
+      "records": [
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.2022
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.3993
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.063
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.2425
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.4217
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0952
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.2812
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.4812
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.1419
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.3207
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.5004
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.1678
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.342
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.021
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.1918
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.3854
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0731
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.2542
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.432
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.1009
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.2753
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.4616
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.1554
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.3291
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.5084
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.1806
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.3801
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0515
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.2495
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.4311
+        }
+      ]
+    },
+    "v2": {
+      "cases": 30,
+      "repaired": 30,
+      "sim_repair_s_median": 0.018,
+      "sim_repair_s_max": 0.0495,
+      "controller_requests_total": 574,
+      "sim_seconds": 300.0,
+      "controller_requests_per_sim_s": 1.91,
+      "records": [
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.0405
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.013
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0163
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0353
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0238
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0353
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.0397
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.0073
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0185
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0175
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0029
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0156
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.012
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.0319
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0223
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0317
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.014
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0067
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.0455
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.0167
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0239
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0172
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0004
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.013
+        },
+        {
+          "fault": "delete_deployment",
+          "repaired": true,
+          "sim_repair_s": 0.0104
+        },
+        {
+          "fault": "delete_service",
+          "repaired": true,
+          "sim_repair_s": 0.0439
+        },
+        {
+          "fault": "image_drift",
+          "repaired": true,
+          "sim_repair_s": 0.045
+        },
+        {
+          "fault": "replica_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0008
+        },
+        {
+          "fault": "service_port_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0495
+        },
+        {
+          "fault": "selector_drift",
+          "repaired": true,
+          "sim_repair_s": 0.0399
+        }
+      ]
+    }
+  },
+  "narrated_rollback": [
+    "t= 10.00s  initial rollout done                         spec=registry.local/model:v1          deploy_image=registry.local/model:v1    Ready=True/Available",
+    "t= 15.00s  user pushes a broken image                   spec=registry.local/model:v2-broken   deploy_image=registry.local/model:v2-broken Ready=False/RollingOut",
+    "t= 45.00s  after 20 s progress deadline                 spec=registry.local/model:v2-broken   deploy_image=registry.local/model:v1    Ready=False/RolledBack",
+    "t= 46.00s  someone deletes the Deployment               spec=registry.local/model:v2-broken   deploy_image=registry.local/model:v1    Ready=False/RolledBack",
+    "t= 50.00s  leader ctrl-a crashes + user fixes image     spec=registry.local/model:v3          deploy_image=registry.local/model:v1    Ready=False/RolledBack",
+    "t= 75.00s  standby took the Lease and rolled forward    spec=registry.local/model:v3          deploy_image=registry.local/model:v3    Ready=True/Available"
+  ]
 }
