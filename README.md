@@ -390,8 +390,7 @@ python3 -m unittest -v test_controller test_runtime   # 27 tests, under 1 s on a
 ├── results-chaos-before-lastgood-fix.json  simulated, superseded (kept as bug evidence)
 ├── results-offline.json                    simulated replay of the live fault list
 ├── results-live.json                       LIVE k3s, v1 code
-├── v1/                  frozen v1 code + v1 offline result (imports refer to the old layout)
-└── INTERVIEW_NOTES.md
+└── v1/                  frozen v1 code + v1 offline result (imports refer to the old layout)
 ```
 
 ## What this isn't / limits
@@ -411,11 +410,3 @@ python3 -m unittest -v test_controller test_runtime   # 27 tests, under 1 s on a
   metrics analysis. "Available" means the Deployment controller says so.
 - One namespace, one worker, no metrics endpoint, no webhook validation beyond the CRD schema,
   no security hardening. Nobody uses it in production.
-
-## More
-
-- [INTERVIEW_NOTES.md](INTERVIEW_NOTES.md): the architecture and the reasoning behind each
-  decision, key results, and likely follow-up questions.
-
-It's a personal project, built with AI pair-programming help: I'd describe a piece, we'd write
-it together, and I'd break it and read the traces.
